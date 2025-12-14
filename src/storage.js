@@ -1,3 +1,16 @@
-import { MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const storage = new MMKV();
+const KEY = 'USER_SESSION';
+
+export const saveUser = async (user) => {
+  await AsyncStorage.setItem(KEY, JSON.stringify(user));
+};
+
+export const getUser = async () => {
+  const data = await AsyncStorage.getItem(KEY);
+  return data ? JSON.parse(data) : null;
+};
+
+export const clearUser = async () => {
+  await AsyncStorage.removeItem(KEY);
+};

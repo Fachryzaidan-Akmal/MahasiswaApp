@@ -1,36 +1,42 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
-import { auth } from '../firebase';
-import { storage } from '../storage';
+import React, { useContext } from 'react';
+import { enableScreens } from 'react-native-screens';
+enableScreens(true);
 
-const LoginScreen = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-  const handleLogin = async () => {
-    try {
-      const result = await auth().signInWithEmailAndPassword(email, password);
-      
-      // simpan UID ke MMKV
-      storage.set('uid', result.user.uid);
+import AuthProvider, { AuthContext } from './auth';
+import LoginScreen from './LoginScreen';
+import HomeScreen from './HomeScreen';
+import AddMahasiswaScreen from './AddMahasiswaScreen';
 
-      onLogin(); // pindah ke Home
-    } catch (error) {
-      Alert.alert("Login gagal", error.message);
-    }
-  };
+const Stack = createStackNavigator();
+
+function Screens() {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) return null;
 
   return (
-    <View style={{ padding: 20, marginTop: 40 }}>
-      <Text>Email</Text>
-      <TextInput style={{ borderWidth:1, padding:10 }} value={email} onChangeText={setEmail} />
-
-      <Text style={{ marginTop:15 }}>Password</Text>
-      <TextInput style={{ borderWidth:1, padding:10 }} value={password} secureTextEntry onChangeText={setPassword} />
-
-      <Button title="Login" onPress={handleLogin} />
-    </View>
+    <Stack.Navigator>
+      {!user ? (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      ) : (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="AddMahasiswa" component={AddMahasiswaScreen} />
+        </>
+      )}
+    </Stack.Navigator>
   );
-};
+}
 
-export default LoginScreen;
+export default function App() {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <Screens />
+      </NavigationContainer>
+    </AuthProvider>
+  );
+}
